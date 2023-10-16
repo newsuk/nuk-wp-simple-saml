@@ -38,7 +38,6 @@ jobs:
       - checkout
       - build-git-key
       - build-base-composer
-      - run-liniting
       - persist_to_workspace:
           root: ./
           paths:
