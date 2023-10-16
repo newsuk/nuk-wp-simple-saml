@@ -12,6 +12,14 @@ commands:
             - 7b:53:48:82:e9:ff:45:44:36:b1:a7:31:65:a6:d6:a2
   pre-built-branch:
     steps:
+      - run: 
+          name: Add google key manually
+          command: |
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4EB27DB2A3B88B8B
+      - run:
+          name: Add google key manually
+          command: |
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4EB27DB2A3B88B8B
       - run:
           name: Deploy -built branch to github.
           command: |
