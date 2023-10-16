@@ -12,13 +12,13 @@
 	<rule ref="WordPress-VIP-Go">
 		<severity>5</severity>
 	</rule>
- 	<rule ref="WordPress.WP.I18n">
+ 	<!-- <rule ref="WordPress.WP.I18n">
 		<properties>
 			<property name="text_domain" type="array">
 				<element value="nuk-wp-simple-saml"/>
 			</property>
 		</properties>
-	</rule>
+	</rule> -->
 
 	<!-- Check all PHP files in directory tree by default. -->
 	<arg name="extensions" value="php"/>
@@ -49,13 +49,8 @@
 	<arg name="colors"/>
  
  
-	<exclude-pattern>/tests/*</exclude-pattern>
  	<exclude-pattern>/vendor/*</exclude-pattern>
 	<exclude-pattern>/docker/*</exclude-pattern>
-  	<exclude-pattern>/images/*</exclude-pattern>
-    <exclude-pattern>/css/*</exclude-pattern>
-    <exclude-pattern>/fonts/*</exclude-pattern>
-	<exclude-pattern>/js/*</exclude-pattern>
  
  
 </ruleset>
