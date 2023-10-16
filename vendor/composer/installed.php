@@ -5,8 +5,8 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'c0331607bd150f04673850b15fb763acf0bfda0a',
-        'name' => 'newsuk/nuk-wp-simple-saml',
+        'reference' => '821ad369a39046d133b79afc809ff3faa5ad2e22',
+        'name' => 'newsuk/wp-simple-saml',
         'dev' => true,
     ),
     'versions' => array(
@@ -28,13 +28,13 @@
             'reference' => '1c968e542d8843d7cd71de3c5c9c3ff3ad71a1db',
             'dev_requirement' => true,
         ),
-        'newsuk/nuk-wp-simple-saml' => array(
+        'newsuk/wp-simple-saml' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'c0331607bd150f04673850b15fb763acf0bfda0a',
+            'reference' => '821ad369a39046d133b79afc809ff3faa5ad2e22',
             'dev_requirement' => false,
         ),
         'onelogin/php-saml' => array(
