@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '329a517203fd78fedd0954dccc05a6a05899c7b9',
+        'reference' => 'dc7119eee957aa8bd2e1592c81ae56eed43ca6d2',
         'name' => 'newsuk/nuk-wp-simple-saml',
         'dev' => true,
     ),
@@ -34,7 +34,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '329a517203fd78fedd0954dccc05a6a05899c7b9',
+            'reference' => 'dc7119eee957aa8bd2e1592c81ae56eed43ca6d2',
             'dev_requirement' => false,
         ),
         'onelogin/php-saml' => array(
