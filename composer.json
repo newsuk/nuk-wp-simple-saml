@@ -1,4 +1,6 @@
 {
+    "name": "newsuk/nuk-wp-simple-saml",
+	"type": "wordpress-plugin",
     "require": {
         "onelogin/php-saml": "4.1.0"
     },
