@@ -17,10 +17,6 @@ commands:
           command: |
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4EB27DB2A3B88B8B
       - run:
-          name: Add google key manually
-          command: |
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4EB27DB2A3B88B8B
-      - run:
           name: Deploy -built branch to github.
           command: |
             /bin/bash <(curl -s "https://raw.githubusercontent.com/Automattic/vip-go-build/master/deploy.sh")
@@ -38,8 +34,6 @@ jobs:
   build:
     docker:
       - image: circleci/php:7.3-node-browsers
-    environment:
-      IMAGETAG: << pipeline.parameters.image-tag >>
     steps:
       - checkout
       - build-git-key
@@ -52,8 +46,6 @@ jobs:
   deploy:
     docker:
       - image: circleci/php:7.3-node-browsers
-    environment:
-      IMAGETAG: << pipeline.parameters.image-tag >>
     steps:
       - attach_workspace:
           at: ./
