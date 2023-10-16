@@ -34,14 +34,15 @@ commands:
       - run:
           name: Install composer inside theme
           command: composer --working-dir=./ php:lint
- 
 jobs:
   build:
     docker:
-      - image: circleci/php:7.4-node-browsers
+      - image: circleci/php:7.3-node-browsers
+    environment:
+      IMAGETAG: << pipeline.parameters.image-tag >>
     steps:
       - checkout
-      - build-git-key 
+      - build-git-key
       - build-base-composer
       - run-liniting
       - persist_to_workspace:
@@ -51,6 +52,8 @@ jobs:
   deploy:
     docker:
       - image: circleci/php:7.3-node-browsers
+    environment:
+      IMAGETAG: << pipeline.parameters.image-tag >>
     steps:
       - attach_workspace:
           at: ./
