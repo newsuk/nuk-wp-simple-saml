@@ -1,0 +1,28 @@
+{
+    "name": "newsuk/nuk-wp-simple-saml",
+	"type": "wordpress-plugin",
+    "require": {
+        "onelogin/php-saml": "4.1.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "OneLogin\\": "src/"
+        }
+    },
+    "exclude-from-classmap": [
+        "vendor/onelogin/php-saml/src/Saml2/Settings.php"
+    ],
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+        "wp-coding-standards/wpcs": "^2.3",
+        "automattic/vipwpcs": "^2.2"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "php:lint": "./vendor/bin/phpcs ."
+    }
+}

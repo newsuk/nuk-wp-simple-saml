@@ -1,0 +1,66 @@
+version: 2.1
+parameters:
+  image-tag:
+    type: string
+    default: "latest"
+commands:
+  build-git-key:
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            # CircleCI Fingerprint in newsuk repo
+            - 7b:53:48:82:e9:ff:45:44:36:b1:a7:31:65:a6:d6:a2
+  pre-built-branch:
+    steps:
+      - run: 
+          name: Add google key manually
+          command: |
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4EB27DB2A3B88B8B
+      - run:
+          name: Add google key manually
+          command: |
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 4EB27DB2A3B88B8B
+      - run:
+          name: Deploy -built branch to github.
+          command: |
+            /bin/bash <(curl -s "https://raw.githubusercontent.com/Automattic/vip-go-build/master/deploy.sh")
+  build-base-composer:
+      steps:
+      - run:
+          name: Install composer inside root directory
+          command: composer update --working-dir=./ -o -n
+  run-liniting:
+    steps:
+      - run:
+          name: Install composer inside theme
+          command: composer --working-dir=./ php:lint
+ 
+jobs:
+  build:
+    docker:
+      - image: circleci/php:7.4-node-browsers
+    steps:
+      - checkout
+      - build-git-key 
+      - build-base-composer
+      - run-liniting
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./
+  deploy:
+    docker:
+      - image: circleci/php:7.3-node-browsers
+    steps:
+      - attach_workspace:
+          at: ./
+      - checkout
+      - build-git-key
+      - pre-built-branch
+workflows:
+  build_deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
