@@ -7,7 +7,6 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
-    'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin' => $vendorDir . '/dealerdirect/phpcodesniffer-composer-installer/src/Plugin.php',
     'OneLogin\\Saml2\\Auth' => $vendorDir . '/onelogin/php-saml/src/Saml2/Auth.php',
     'OneLogin\\Saml2\\AuthnRequest' => $vendorDir . '/onelogin/php-saml/src/Saml2/AuthnRequest.php',
     'OneLogin\\Saml2\\Constants' => $vendorDir . '/onelogin/php-saml/src/Saml2/Constants.php',
@@ -24,13 +23,4 @@ return array(
     'RobRichards\\XMLSecLibs\\XMLSecEnc' => $vendorDir . '/robrichards/xmlseclibs/src/XMLSecEnc.php',
     'RobRichards\\XMLSecLibs\\XMLSecurityDSig' => $vendorDir . '/robrichards/xmlseclibs/src/XMLSecurityDSig.php',
     'RobRichards\\XMLSecLibs\\XMLSecurityKey' => $vendorDir . '/robrichards/xmlseclibs/src/XMLSecurityKey.php',
-    'VariableAnalysis\\Lib\\Constants' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/Constants.php',
-    'VariableAnalysis\\Lib\\EnumInfo' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/EnumInfo.php',
-    'VariableAnalysis\\Lib\\ForLoopInfo' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ForLoopInfo.php',
-    'VariableAnalysis\\Lib\\Helpers' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/Helpers.php',
-    'VariableAnalysis\\Lib\\ScopeInfo' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ScopeInfo.php',
-    'VariableAnalysis\\Lib\\ScopeManager' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ScopeManager.php',
-    'VariableAnalysis\\Lib\\ScopeType' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ScopeType.php',
-    'VariableAnalysis\\Lib\\VariableInfo' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/VariableInfo.php',
-    'VariableAnalysis\\Sniffs\\CodeAnalysis\\VariableAnalysisSniff' => $vendorDir . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Sniffs/CodeAnalysis/VariableAnalysisSniff.php',
 );

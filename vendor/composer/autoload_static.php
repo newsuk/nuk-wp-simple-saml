@@ -4,13 +4,9 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc
+class ComposerStaticInit60d1533c79ab61eb4e2ec702f4085593
 {
     public static $prefixLengthsPsr4 = array (
-        'V' => 
-        array (
-            'VariableAnalysis\\' => 17,
-        ),
         'R' => 
         array (
             'RobRichards\\XMLSecLibs\\' => 23,
@@ -19,17 +15,9 @@ class ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc
         array (
             'OneLogin\\' => 9,
         ),
-        'D' => 
-        array (
-            'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 55,
-        ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'VariableAnalysis\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis',
-        ),
         'RobRichards\\XMLSecLibs\\' => 
         array (
             0 => __DIR__ . '/..' . '/robrichards/xmlseclibs/src',
@@ -39,15 +27,10 @@ class ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc
             0 => __DIR__ . '/../..' . '/src',
             1 => __DIR__ . '/..' . '/onelogin/php-saml/src',
         ),
-        'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/dealerdirect/phpcodesniffer-composer-installer/src',
-        ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\Plugin' => __DIR__ . '/..' . '/dealerdirect/phpcodesniffer-composer-installer/src/Plugin.php',
         'OneLogin\\Saml2\\Auth' => __DIR__ . '/..' . '/onelogin/php-saml/src/Saml2/Auth.php',
         'OneLogin\\Saml2\\AuthnRequest' => __DIR__ . '/..' . '/onelogin/php-saml/src/Saml2/AuthnRequest.php',
         'OneLogin\\Saml2\\Constants' => __DIR__ . '/..' . '/onelogin/php-saml/src/Saml2/Constants.php',
@@ -64,23 +47,14 @@ class ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc
         'RobRichards\\XMLSecLibs\\XMLSecEnc' => __DIR__ . '/..' . '/robrichards/xmlseclibs/src/XMLSecEnc.php',
         'RobRichards\\XMLSecLibs\\XMLSecurityDSig' => __DIR__ . '/..' . '/robrichards/xmlseclibs/src/XMLSecurityDSig.php',
         'RobRichards\\XMLSecLibs\\XMLSecurityKey' => __DIR__ . '/..' . '/robrichards/xmlseclibs/src/XMLSecurityKey.php',
-        'VariableAnalysis\\Lib\\Constants' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/Constants.php',
-        'VariableAnalysis\\Lib\\EnumInfo' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/EnumInfo.php',
-        'VariableAnalysis\\Lib\\ForLoopInfo' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ForLoopInfo.php',
-        'VariableAnalysis\\Lib\\Helpers' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/Helpers.php',
-        'VariableAnalysis\\Lib\\ScopeInfo' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ScopeInfo.php',
-        'VariableAnalysis\\Lib\\ScopeManager' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ScopeManager.php',
-        'VariableAnalysis\\Lib\\ScopeType' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/ScopeType.php',
-        'VariableAnalysis\\Lib\\VariableInfo' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Lib/VariableInfo.php',
-        'VariableAnalysis\\Sniffs\\CodeAnalysis\\VariableAnalysisSniff' => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis/Sniffs/CodeAnalysis/VariableAnalysisSniff.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInitff6a8820105802fd1d6db1f3b7e255dc::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit60d1533c79ab61eb4e2ec702f4085593::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit60d1533c79ab61eb4e2ec702f4085593::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInit60d1533c79ab61eb4e2ec702f4085593::$classMap;
 
         }, null, ClassLoader::class);
     }
