@@ -39,6 +39,7 @@ jobs:
       - build-git-key
       - build-base-composer
       - run-liniting
+      - pre-built-branch
       - persist_to_workspace:
           root: ./
           paths:
@@ -50,8 +51,7 @@ jobs:
       - attach_workspace:
           at: ./
       - checkout
-      - build-git-key
-      - pre-built-branch
+      - build-git-key 
 workflows:
   build_deploy:
     jobs:
