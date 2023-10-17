@@ -167,8 +167,8 @@ function verify() {
 
 	$saml->processResponse();
 
-	if ( ! empty( $saml->get_errors() ) ) {
-		$errors = implode( ', ', $saml->get_errors() );
+	if ( ! empty( $saml->getErrors() ) ) {
+		$errors = implode( ', ', $saml->getErrors() );
 		wp_die(
 			sprintf(
 				'Error: Could not parse the authentication response, '
