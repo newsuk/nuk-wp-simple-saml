@@ -431,7 +431,7 @@ function login_via_sso_link() {
 	$output = sprintf(
 		'<p><a href="%s" id="login-via-sso">%s</a></p>',
 		esc_url( site_url( 'sso/login/' ) . urlencode( $redirect ) ),
-		esc_html( apply_filters( 'wpsimplesaml_login_text', __( 'Login via SSO', 'wp-simple-saml' ) ) )
+		esc_html( apply_filters( 'wpsimplesaml_login_text', __( 'Login via SSO', 'nuk-wp-simple-saml' ) ) )
 	);
 
 	echo $output;
