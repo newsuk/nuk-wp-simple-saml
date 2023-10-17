@@ -28,7 +28,7 @@ commands:
   run-liniting:
     steps:
       - run:
-          name: Install composer inside theme
+          name: Lint the php files
           command: composer --working-dir=./ php:lint
 jobs:
   build:
@@ -38,6 +38,7 @@ jobs:
       - checkout
       - build-git-key
       - build-base-composer
+      - run-liniting
       - persist_to_workspace:
           root: ./
           paths:
