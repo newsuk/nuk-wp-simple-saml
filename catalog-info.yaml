@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: nuk-wp-simple-saml
+  description: Component for nuk-wp-simple-saml
+  annotations:
+    circleci.com/project-slug: github/newsuk/nuk-wp-simple-saml
+    backstage.io/source-location: url:https://github.com/newsuk/nuk-wp-simple-saml/
+    github.com/team-slug: newsuk/nuk-wp-simple-saml
+    backstage.io/productivity-hub-metrics-enabled: 'true'
+  tags:
+    - bu:newsuk
+spec:
+  type: service
+  lifecycle: production
+  owner: nuk
