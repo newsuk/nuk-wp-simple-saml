@@ -9,7 +9,7 @@ commands:
       - add_ssh_keys:
           fingerprints:
             # CircleCI Fingerprint in newsuk repo
-            - 7b:53:48:82:e9:ff:45:44:36:b1:a7:31:65:a6:d6:a2
+            - 1a:ab:08:9a:ad:2e:02:25:94:7e:54:5b:15:0a:a0:ee
   pre-built-branch:
     steps:
       - run: 
