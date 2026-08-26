@@ -33,7 +33,7 @@ commands:
 jobs:
   build:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: circleci/php:7.4-node-browsers
     steps:
       - checkout
       - build-git-key
@@ -44,7 +44,7 @@ jobs:
             - ./
   deploy:
     docker:
-      - image: circleci/php:7.3-node-browsers
+      - image: circleci/php:7.4-node-browsers
     steps:
       - attach_workspace:
           at: ./
