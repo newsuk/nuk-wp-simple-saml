@@ -1,0 +1,28 @@
+{
+    "name": "newsuk/wp-simple-saml",
+	"type": "wordpress-plugin",
+    "require": {
+        "onelogin/php-saml": "4.3.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "OneLogin\\": "src/"
+        }
+    },
+    "exclude-from-classmap": [
+        "vendor/onelogin/php-saml/src/Saml2/Settings.php"
+    ],
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
+        "wp-coding-standards/wpcs": "^3.4",
+        "automattic/vipwpcs": "^3.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "php:lint": "./vendor/bin/phpcs ."
+    }
+}
