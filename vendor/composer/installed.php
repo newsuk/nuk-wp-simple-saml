@@ -5,7 +5,7 @@
         'type' => 'wordpress-plugin',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => 'd4bec9f797ef80dd6412a4f0bfe1bdf65b6b1e5b',
+        'reference' => '6283529871c17b1a8e66146bd32b4ef1aa956f12',
         'name' => 'newsuk/wp-simple-saml',
         'dev' => true,
     ),
@@ -34,7 +34,7 @@
             'type' => 'wordpress-plugin',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => 'd4bec9f797ef80dd6412a4f0bfe1bdf65b6b1e5b',
+            'reference' => '6283529871c17b1a8e66146bd32b4ef1aa956f12',
             'dev_requirement' => false,
         ),
         'onelogin/php-saml' => array(
