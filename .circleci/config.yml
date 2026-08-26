@@ -4,12 +4,6 @@ parameters:
     type: string
     default: "latest"
 commands:
-  build-git-key:
-    steps:
-      - add_ssh_keys:
-          fingerprints:
-            # CircleCI Fingerprint in newsuk repo
-            - 1a:ab:08:9a:ad:2e:02:25:94:7e:54:5b:15:0a:a0:ee
   pre-built-branch:
     steps:
       - run: 
@@ -36,7 +30,6 @@ jobs:
       - image: circleci/php:7.4-node-browsers
     steps:
       - checkout
-      - build-git-key
       - build-base-composer
       - persist_to_workspace:
           root: ./
@@ -49,7 +42,6 @@ jobs:
       - attach_workspace:
           at: ./
       - checkout
-      - build-git-key
       - pre-built-branch
 workflows:
   build_deploy:
