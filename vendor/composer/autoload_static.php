@@ -4,42 +4,42 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit3ef435d8d1a45b2d29a575cd9bb11b86
+class ComposerStaticInitdda76285ece18e778f46f71ee4010d25
 {
     public static $prefixLengthsPsr4 = array (
-        'V' => 
+        'V' =>
         array (
             'VariableAnalysis\\' => 17,
         ),
-        'R' => 
+        'R' =>
         array (
             'RobRichards\\XMLSecLibs\\' => 23,
         ),
-        'O' => 
+        'O' =>
         array (
             'OneLogin\\' => 9,
         ),
-        'D' => 
+        'D' =>
         array (
             'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 55,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'VariableAnalysis\\' => 
+        'VariableAnalysis\\' =>
         array (
             0 => __DIR__ . '/..' . '/sirbrillig/phpcs-variable-analysis/VariableAnalysis',
         ),
-        'RobRichards\\XMLSecLibs\\' => 
+        'RobRichards\\XMLSecLibs\\' =>
         array (
             0 => __DIR__ . '/..' . '/robrichards/xmlseclibs/src',
         ),
-        'OneLogin\\' => 
+        'OneLogin\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
             1 => __DIR__ . '/..' . '/onelogin/php-saml/src',
         ),
-        'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' => 
+        'Dealerdirect\\Composer\\Plugin\\Installers\\PHPCodeSniffer\\' =>
         array (
             0 => __DIR__ . '/..' . '/dealerdirect/phpcodesniffer-composer-installer/src',
         ),
@@ -130,9 +130,9 @@ class ComposerStaticInit3ef435d8d1a45b2d29a575cd9bb11b86
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit3ef435d8d1a45b2d29a575cd9bb11b86::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit3ef435d8d1a45b2d29a575cd9bb11b86::$prefixDirsPsr4;
-            $loader->classMap = ComposerStaticInit3ef435d8d1a45b2d29a575cd9bb11b86::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitdda76285ece18e778f46f71ee4010d25::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitdda76285ece18e778f46f71ee4010d25::$prefixDirsPsr4;
+            $loader->classMap = ComposerStaticInitdda76285ece18e778f46f71ee4010d25::$classMap;
 
         }, null, ClassLoader::class);
     }
