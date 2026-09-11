@@ -4,6 +4,7 @@ namespace VariableAnalysis\Lib;
 
 use PHP_CodeSniffer\Files\File;
 use VariableAnalysis\Lib\ScopeInfo;
+use VariableAnalysis\Lib\Constants;
 use VariableAnalysis\Lib\ForLoopInfo;
 use VariableAnalysis\Lib\EnumInfo;
 use VariableAnalysis\Lib\ScopeType;
@@ -37,6 +38,9 @@ class Helpers
 	}
 
 	/**
+	 * Find the position of the square bracket containing the token at $stackPtr,
+	 * if any.
+	 *
 	 * @param File $phpcsFile
 	 * @param int  $stackPtr
 	 *
@@ -44,8 +48,26 @@ class Helpers
 	 */
 	public static function findContainingOpeningSquareBracket(File $phpcsFile, $stackPtr)
 	{
+		// Find the previous bracket within this same statement.
 		$previousStatementPtr = self::getPreviousStatementPtr($phpcsFile, $stackPtr);
-		return self::getIntOrNull($phpcsFile->findPrevious([T_OPEN_SHORT_ARRAY, T_OPEN_SQUARE_BRACKET], $stackPtr - 1, $previousStatementPtr));
+		$openBracketPosition = self::getIntOrNull($phpcsFile->findPrevious([T_OPEN_SHORT_ARRAY, T_OPEN_SQUARE_BRACKET], $stackPtr - 1, $previousStatementPtr));
+		if (empty($openBracketPosition)) {
+			return null;
+		}
+		// Make sure we are inside the pair of brackets we found.
+		$tokens = $phpcsFile->getTokens();
+		$openBracketToken = $tokens[$openBracketPosition];
+		if (empty($openBracketToken) || empty($tokens[$openBracketToken['bracket_closer']])) {
+			return null;
+		}
+		$closeBracketPosition = $openBracketToken['bracket_closer'];
+		if (empty($closeBracketPosition)) {
+			return null;
+		}
+		if ($stackPtr > $closeBracketPosition) {
+			return null;
+		}
+		return $openBracketPosition;
 	}
 
 	/**
@@ -71,7 +93,7 @@ class Helpers
 		$tokens = $phpcsFile->getTokens();
 		if (isset($tokens[$stackPtr]['nested_parenthesis'])) {
 			/**
-			 * @var array<int|string|null>
+			 * @var list<int|string>
 			 */
 			$openPtrs = array_keys($tokens[$stackPtr]['nested_parenthesis']);
 			return (int)end($openPtrs);
@@ -297,8 +319,18 @@ class Helpers
 		if (is_int($openPtr)) {
 			// First non-whitespace thing and see if it's a T_STRING function name
 			$functionPtr = $phpcsFile->findPrevious(Tokens::$emptyTokens, $openPtr - 1, null, true, null, true);
-			if (is_int($functionPtr) && $tokens[$functionPtr]['code'] === T_STRING) {
-				return $functionPtr;
+			if (is_int($functionPtr)) {
+				$functionTokenCode = $tokens[$functionPtr]['code'];
+				// In PHPCS 4.x, function names can be T_NAME_FULLY_QUALIFIED, T_NAME_QUALIFIED, or T_NAME_RELATIVE
+				$validFunctionTokens = [
+					T_STRING,
+					T_NAME_FULLY_QUALIFIED,
+					T_NAME_QUALIFIED,
+					T_NAME_RELATIVE,
+				];
+				if (in_array($functionTokenCode, $validFunctionTokens, true)) {
+					return $functionPtr;
+				}
 			}
 		}
 		return null;
@@ -342,9 +374,6 @@ class Helpers
 			if (self::findContainingOpeningBracket($phpcsFile, $nextPtr) === $openPtr) {
 				// Comma is at our level of brackets, it's an argument delimiter.
 				$range = range($lastArgComma + 1, $nextPtr - 1);
-				$range = array_filter($range, function ($element) {
-					return is_int($element);
-				});
 				array_push($argPtrs, $range);
 				$lastArgComma = $nextPtr;
 			}
@@ -372,7 +401,8 @@ class Helpers
 
 		// Is the next non-whitespace an assignment?
 		$nextPtr = $phpcsFile->findNext(Tokens::$emptyTokens, $stackPtr + 1, null, true, null, true);
-		if (is_int($nextPtr)
+		if (
+			is_int($nextPtr)
 			&& isset(Tokens::$assignmentTokens[$tokens[$nextPtr]['code']])
 			// Ignore double arrow to prevent triggering on `foreach ( $array as $k => $v )`.
 			&& $tokens[$nextPtr]['code'] !== T_DOUBLE_ARROW
@@ -406,22 +436,88 @@ class Helpers
 		$token = $tokens[$stackPtr];
 		$varName = isset($varName) ? $varName : self::normalizeVarName($token['content']);
 
-		$arrowFunctionIndex = self::getContainingArrowFunctionIndex($phpcsFile, $stackPtr);
-		$isTokenInsideArrowFunctionBody = is_int($arrowFunctionIndex);
-		if ($isTokenInsideArrowFunctionBody) {
-			// Get the list of variables defined by the arrow function
-			// If this matches any of them, the scope is the arrow function,
-			// otherwise, it uses the enclosing scope.
-			if ($arrowFunctionIndex) {
-				$variableNames = self::getVariablesDefinedByArrowFunction($phpcsFile, $arrowFunctionIndex);
-				self::debug('findVariableScope: looking for', $varName, 'in arrow function variables', $variableNames);
-				if (in_array($varName, $variableNames, true)) {
-					return $arrowFunctionIndex;
+		$enclosingScopeIndex = self::findVariableScopeExceptArrowFunctions($phpcsFile, $stackPtr);
+
+		if (!is_null($enclosingScopeIndex)) {
+			$arrowFunctionIndex = self::getContainingArrowFunctionIndex($phpcsFile, $stackPtr, $enclosingScopeIndex);
+			$isTokenInsideArrowFunctionBody = is_int($arrowFunctionIndex);
+			if ($isTokenInsideArrowFunctionBody) {
+				// Get the list of variables defined by the arrow function
+				// If this matches any of them, the scope is the arrow function,
+				// otherwise, it uses the enclosing scope.
+				if ($arrowFunctionIndex) {
+					$variableNames = self::getVariablesDefinedByArrowFunction($phpcsFile, $arrowFunctionIndex);
+					self::debug('findVariableScope: looking for', $varName, 'in arrow function variables', $variableNames);
+					if (in_array($varName, $variableNames, true)) {
+						return $arrowFunctionIndex;
+					}
 				}
 			}
 		}
 
-		return self::findVariableScopeExceptArrowFunctions($phpcsFile, $stackPtr);
+		return $enclosingScopeIndex;
+	}
+
+	/**
+	 * Return the variable names and positions of each variable targetted by a `compact()` call.
+	 *
+	 * @param File                   $phpcsFile
+	 * @param int                    $stackPtr
+	 * @param array<int, array<int>> $arguments The stack pointers of each argument; see findFunctionCallArguments
+	 *
+	 * @return array<VariableInfo> each variable's firstRead position and its name; other VariableInfo properties are not set!
+	 */
+	public static function getVariablesInsideCompact(File $phpcsFile, $stackPtr, $arguments)
+	{
+		$tokens = $phpcsFile->getTokens();
+		$variablePositionsAndNames = [];
+
+		foreach ($arguments as $argumentPtrs) {
+			$argumentPtrs = array_values(array_filter($argumentPtrs, function ($argumentPtr) use ($tokens) {
+				return isset(Tokens::$emptyTokens[$tokens[$argumentPtr]['code']]) === false;
+			}));
+			if (empty($argumentPtrs)) {
+				continue;
+			}
+			if (!isset($tokens[$argumentPtrs[0]])) {
+				continue;
+			}
+			$argumentFirstToken = $tokens[$argumentPtrs[0]];
+			if ($argumentFirstToken['code'] === T_ARRAY) {
+				// It's an array argument, recurse.
+				$arrayArguments = self::findFunctionCallArguments($phpcsFile, $argumentPtrs[0]);
+				$variablePositionsAndNames = array_merge($variablePositionsAndNames, self::getVariablesInsideCompact($phpcsFile, $stackPtr, $arrayArguments));
+				continue;
+			}
+			if (count($argumentPtrs) > 1) {
+				// Complex argument, we can't handle it, ignore.
+				continue;
+			}
+			if ($argumentFirstToken['code'] === T_CONSTANT_ENCAPSED_STRING) {
+				// Single-quoted string literal, ie compact('whatever').
+				// Substr is to strip the enclosing single-quotes.
+				$varName = substr($argumentFirstToken['content'], 1, -1);
+				$variable = new VariableInfo($varName);
+				$variable->firstRead = $argumentPtrs[0];
+				$variablePositionsAndNames[] = $variable;
+				continue;
+			}
+			if ($argumentFirstToken['code'] === T_DOUBLE_QUOTED_STRING) {
+				// Double-quoted string literal.
+				$regexp = Constants::getDoubleQuotedVarRegexp();
+				if (! empty($regexp) && preg_match($regexp, $argumentFirstToken['content'])) {
+					// Bail if the string needs variable expansion, that's runtime stuff.
+					continue;
+				}
+				// Substr is to strip the enclosing double-quotes.
+				$varName = substr($argumentFirstToken['content'], 1, -1);
+				$variable = new VariableInfo($varName);
+				$variable->firstRead = $argumentPtrs[0];
+				$variablePositionsAndNames[] = $variable;
+				continue;
+			}
+		}
+		return $variablePositionsAndNames;
 	}
 
 	/**
@@ -460,6 +556,9 @@ class Helpers
 			T_DOUBLE_QUOTED_STRING,
 			T_HEREDOC,
 			T_STRING,
+			T_NAME_FULLY_QUALIFIED,
+			T_NAME_QUALIFIED,
+			T_NAME_RELATIVE,
 		];
 		if (! in_array($tokens[$stackPtr]['code'], $allowedTypes, true)) {
 			throw new \Exception("Cannot find variable scope for non-variable {$tokens[$stackPtr]['type']}");
@@ -533,30 +632,13 @@ class Helpers
 	/**
 	 * @param File $phpcsFile
 	 * @param int  $stackPtr
-	 *
-	 * @return bool
-	 */
-	public static function isTokenInsideArrowFunctionDefinition(File $phpcsFile, $stackPtr)
-	{
-		$tokens = $phpcsFile->getTokens();
-		$token = $tokens[$stackPtr];
-		$openParenIndices = isset($token['nested_parenthesis']) ? $token['nested_parenthesis'] : [];
-		if (empty($openParenIndices)) {
-			return false;
-		}
-		$openParenPtr = $openParenIndices[0];
-		return self::isArrowFunction($phpcsFile, $openParenPtr - 1);
-	}
-
-	/**
-	 * @param File $phpcsFile
-	 * @param int  $stackPtr
+	 * @param int  $enclosingScopeIndex
 	 *
 	 * @return ?int
 	 */
-	public static function getContainingArrowFunctionIndex(File $phpcsFile, $stackPtr)
+	public static function getContainingArrowFunctionIndex(File $phpcsFile, $stackPtr, $enclosingScopeIndex)
 	{
-		$arrowFunctionIndex = self::getPreviousArrowFunctionIndex($phpcsFile, $stackPtr);
+		$arrowFunctionIndex = self::getPreviousArrowFunctionIndex($phpcsFile, $stackPtr, $enclosingScopeIndex);
 		if (! is_int($arrowFunctionIndex)) {
 			return null;
 		}
@@ -564,24 +646,41 @@ class Helpers
 		if (! $arrowFunctionInfo) {
 			return null;
 		}
-		$arrowFunctionScopeStart = $arrowFunctionInfo['scope_opener'];
-		$arrowFunctionScopeEnd = $arrowFunctionInfo['scope_closer'];
-		if ($stackPtr > $arrowFunctionScopeStart && $stackPtr < $arrowFunctionScopeEnd) {
+
+		// We found the closest arrow function before this token. If the token is
+		// within the scope of that arrow function, then return it.
+		if ($stackPtr > $arrowFunctionInfo['scope_opener'] && $stackPtr < $arrowFunctionInfo['scope_closer']) {
 			return $arrowFunctionIndex;
 		}
+
+		// If the token is after the scope of the closest arrow function, we may
+		// still be inside the scope of a nested arrow function, so we need to
+		// search further back until we are certain there are no more arrow
+		// functions.
+		if ($stackPtr > $arrowFunctionInfo['scope_closer']) {
+			return self::getContainingArrowFunctionIndex($phpcsFile, $arrowFunctionIndex, $enclosingScopeIndex);
+		}
+
 		return null;
 	}
 
 	/**
+	 * Move back from the stackPtr to the start of the enclosing scope until we
+	 * find a 'fn' token that starts an arrow function, returning the index of
+	 * that token. Returns null if there are no arrow functions before stackPtr.
+	 *
+	 * Note that this does not guarantee that stackPtr is inside the arrow
+	 * function scope we find!
+	 *
 	 * @param File $phpcsFile
 	 * @param int  $stackPtr
+	 * @param int  $enclosingScopeIndex
 	 *
 	 * @return ?int
 	 */
-	private static function getPreviousArrowFunctionIndex(File $phpcsFile, $stackPtr)
+	private static function getPreviousArrowFunctionIndex(File $phpcsFile, $stackPtr, $enclosingScopeIndex)
 	{
 		$tokens = $phpcsFile->getTokens();
-		$enclosingScopeIndex = self::findVariableScopeExceptArrowFunctions($phpcsFile, $stackPtr);
 		for ($index = $stackPtr - 1; $index > $enclosingScopeIndex; $index--) {
 			$token = $tokens[$index];
 			if ($token['content'] === 'fn' && self::isArrowFunction($phpcsFile, $index)) {
@@ -625,6 +724,15 @@ class Helpers
 	}
 
 	/**
+	 * Find the opening and closing scope positions for an arrow function if the
+	 * given position is the start of the arrow function (the `fn` keyword
+	 * token).
+	 *
+	 * Returns null if the passed token is not an arrow function keyword.
+	 *
+	 * If the token is an arrow function keyword, the scope opener is returned as
+	 * the provided position.
+	 *
 	 * @param File $phpcsFile
 	 * @param int  $stackPtr
 	 *
@@ -835,10 +943,17 @@ class Helpers
 			$parents = isset($tokens[$listOpenerIndex]['nested_parenthesis']) ? $tokens[$listOpenerIndex]['nested_parenthesis'] : [];
 			// There's no record of nested brackets for short lists; we'll have to find the parent ourselves
 			if (empty($parents)) {
-				$parentSquareBracket = self::findContainingOpeningSquareBracket($phpcsFile, $listOpenerIndex);
-				if (is_int($parentSquareBracket)) {
-					// Collect the opening index, but we don't actually need the closing paren index so just make that 0
-					$parents = [$parentSquareBracket => 0];
+				$parentSquareBracketPtr = self::findContainingOpeningSquareBracket($phpcsFile, $listOpenerIndex);
+				if (is_int($parentSquareBracketPtr)) {
+					// Make sure that the parent is really a parent by checking that its
+					// closing index is outside of the current bracket's closing index.
+					$parentSquareBracketToken = $tokens[$parentSquareBracketPtr];
+					$parentSquareBracketClosePtr = $parentSquareBracketToken['bracket_closer'];
+					if ($parentSquareBracketClosePtr && $parentSquareBracketClosePtr > $closePtr) {
+						self::debug("found enclosing bracket for {$listOpenerIndex}: {$parentSquareBracketPtr}");
+						// Collect the opening index, but we don't actually need the closing paren index so just make that 0
+						$parents = [$parentSquareBracketPtr => 0];
+					}
 				}
 			}
 			// If we have no parents, this is not a nested assignment and therefore is not an assignment
@@ -1168,7 +1283,7 @@ class Helpers
 			return null;
 		}
 		/**
-		 * @var array<int|string|null>
+		 * @var list<int|string>
 		 */
 		$startingParenthesis = array_keys($token['nested_parenthesis']);
 		$startOfArguments = end($startingParenthesis);
@@ -1507,6 +1622,7 @@ class Helpers
 	 */
 	public static function isConstructorPromotion(File $phpcsFile, $stackPtr)
 	{
+		// If we are not in a function's parameters, this is not promotion.
 		$functionIndex = self::getFunctionIndexForFunctionParameter($phpcsFile, $stackPtr);
 		if (! $functionIndex) {
 			return false;
@@ -1514,44 +1630,157 @@ class Helpers
 
 		$tokens = $phpcsFile->getTokens();
 
-		// If the previous token is a visibility keyword, this is constructor
-		// promotion. eg: `public $foobar`.
-		$prevIndex = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($stackPtr - 1), $functionIndex, true);
-		if (! is_int($prevIndex)) {
+		// Move backwards from the token, ignoring whitespace, typehints, and the
+		// 'readonly' keyword, and return true if the previous token is a
+		// visibility keyword (eg: `public`).
+		for ($i = $stackPtr - 1; $i > $functionIndex; $i--) {
+			if (in_array($tokens[$i]['code'], Tokens::$scopeModifiers, true)) {
+				return true;
+			}
+			if (in_array($tokens[$i]['code'], Tokens::$emptyTokens, true)) {
+				continue;
+			}
+			if ($tokens[$i]['content'] === 'readonly') {
+				continue;
+			}
+			if (self::isTokenPartOfTypehint($phpcsFile, $i)) {
+				continue;
+			}
 			return false;
 		}
-		$prevToken = $tokens[$prevIndex];
-		if (in_array($prevToken['code'], Tokens::$scopeModifiers, true)) {
-			return true;
-		}
-
-		// If the previous token is not a visibility keyword, but the one before it
-		// is, the previous token was probably a typehint and this is constructor
-		// promotion. eg: `public boolean $foobar`.
-		$prev2Index = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($prevIndex - 1), $functionIndex, true);
-		if (! is_int($prev2Index)) {
-			return false;
-		}
-		$prev2Token = $tokens[$prev2Index];
-		if (in_array($prev2Token['code'], Tokens::$scopeModifiers, true)) {
-			return true;
-		}
-
-		// If the previous token is not a visibility keyword, but the one two
-		// before it is, and one of the tokens is `readonly`, the previous token
-		// was probably a typehint and this is constructor promotion. eg: `public
-		// readonly boolean $foobar`.
-		$prev3Index = $phpcsFile->findPrevious(Tokens::$emptyTokens, ($prev2Index - 1), $functionIndex, true);
-		if (! is_int($prev3Index)) {
-			return false;
-		}
-		$prev3Token = $tokens[$prev3Index];
-		$wasPreviousReadonly = $prevToken['content'] === 'readonly' || $prev2Token['content'] === 'readonly';
-		if (in_array($prev3Token['code'], Tokens::$scopeModifiers, true) && $wasPreviousReadonly) {
-			return true;
-		}
-
 		return false;
+	}
+
+	/**
+	 * If looking at a function call token, return a string for the full function
+	 * name including any inline namespace.
+	 *
+	 * So for example, if the call looks like `\My\Namespace\doSomething($bar)`
+	 * and `$stackPtr` refers to `doSomething`, this will return
+	 * `\My\Namespace\doSomething`.
+	 *
+	 * @param File $phpcsFile
+	 * @param int  $stackPtr
+	 *
+	 * @return string|null
+	 */
+	public static function getFunctionNameWithNamespace(File $phpcsFile, $stackPtr)
+	{
+		$tokens = $phpcsFile->getTokens();
+
+		if (! isset($tokens[$stackPtr])) {
+			return null;
+		}
+		$startOfScope = self::findVariableScope($phpcsFile, $stackPtr);
+		$functionName = $tokens[$stackPtr]['content'];
+
+		// In PHPCS 4.x, T_NAME_FULLY_QUALIFIED, T_NAME_QUALIFIED, and T_NAME_RELATIVE
+		// tokens already contain the full namespaced name, so we can return early.
+		if ($tokens[$stackPtr]['code'] === T_NAME_FULLY_QUALIFIED) {
+			return $functionName;
+		}
+		if ($tokens[$stackPtr]['code'] === T_NAME_QUALIFIED) {
+			return $functionName;
+		}
+		if ($tokens[$stackPtr]['code'] === T_NAME_RELATIVE) {
+			return $functionName;
+		}
+
+		// Move backwards from the token, collecting namespace separators and
+		// strings, until we encounter whitespace or something else.
+		$partOfNamespace = [
+			T_NS_SEPARATOR,
+			T_STRING,
+			T_NAME_QUALIFIED,
+			T_NAME_RELATIVE,
+			T_NAME_FULLY_QUALIFIED,
+		];
+		for ($i = $stackPtr - 1; $i > $startOfScope; $i--) {
+			if (! in_array($tokens[$i]['code'], $partOfNamespace, true)) {
+				break;
+			}
+			$functionName = "{$tokens[$i]['content']}{$functionName}";
+		}
+		return $functionName;
+	}
+
+	/**
+	 * Return false if the token is definitely not part of a typehint
+	 *
+	 * @param File $phpcsFile
+	 * @param int  $stackPtr
+	 *
+	 * @return bool
+	 */
+	private static function isTokenPossiblyPartOfTypehint(File $phpcsFile, $stackPtr)
+	{
+		$tokens = $phpcsFile->getTokens();
+		$token = $tokens[$stackPtr];
+		if ($token['code'] === 'PHPCS_T_NULLABLE') {
+			return true;
+		}
+		if ($token['code'] === T_NAME_QUALIFIED) {
+			return true;
+		}
+		if ($token['code'] === T_NAME_RELATIVE) {
+			return true;
+		}
+		if ($token['code'] === T_NAME_FULLY_QUALIFIED) {
+			return true;
+		}
+		if ($token['code'] === T_NS_SEPARATOR) {
+			return true;
+		}
+		if ($token['code'] === T_STRING) {
+			return true;
+		}
+		if ($token['code'] === T_TRUE) {
+			return true;
+		}
+		if ($token['code'] === T_FALSE) {
+			return true;
+		}
+		if ($token['code'] === T_NULL) {
+			return true;
+		}
+		if ($token['content'] === '|') {
+			return true;
+		}
+		if (in_array($token['code'], Tokens::$emptyTokens)) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Return true if the token is inside a typehint
+	 *
+	 * @param File $phpcsFile
+	 * @param int  $stackPtr
+	 *
+	 * @return bool
+	 */
+	public static function isTokenPartOfTypehint(File $phpcsFile, $stackPtr)
+	{
+		$tokens = $phpcsFile->getTokens();
+
+		if (! self::isTokenPossiblyPartOfTypehint($phpcsFile, $stackPtr)) {
+			return false;
+		}
+
+		// Examine every following token, ignoring everything that might be part of
+		// a typehint. If we find a variable at the end, this is part of a
+		// typehint.
+		$i = $stackPtr;
+		while (true) {
+			$i += 1;
+			if (! isset($tokens[$i])) {
+				return false;
+			}
+			if (! self::isTokenPossiblyPartOfTypehint($phpcsFile, $i)) {
+				return ($tokens[$i]['code'] === T_VARIABLE);
+			}
+		}
 	}
 
 	/**
