@@ -2,7 +2,7 @@
     "name": "newsuk/wp-simple-saml",
 	"type": "wordpress-plugin",
     "require": {
-        "onelogin/php-saml": "4.1.0"
+        "onelogin/php-saml": "4.3.2"
     },
     "autoload": {
         "psr-4": {
@@ -14,8 +14,8 @@
     ],
     "require-dev": {
         "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-        "wp-coding-standards/wpcs": "^2.3",
-        "automattic/vipwpcs": "^2.2"
+        "wp-coding-standards/wpcs": "^3.4",
+        "automattic/vipwpcs": "^3.1"
     },
     "config": {
         "allow-plugins": {
